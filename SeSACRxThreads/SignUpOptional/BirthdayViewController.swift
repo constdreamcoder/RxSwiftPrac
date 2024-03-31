@@ -7,6 +7,13 @@
  
 import UIKit
 import SnapKit
+import RxSwift
+import RxCocoa
+
+enum InfoLabelText: String {
+    case availableAge = "가입 가능한 나이입니다"
+    case unavailableAge = "만 17세 이상만 가입 가능합니다"
+}
 
 class BirthdayViewController: UIViewController {
     
@@ -66,6 +73,13 @@ class BirthdayViewController: UIViewController {
   
     let nextButton = PointButton(title: "가입하기")
     
+    let year = PublishSubject<Int>()
+    let month = PublishSubject<Int>()
+    let day = PublishSubject<Int>()
+    let info = PublishSubject<String>()
+    
+    let disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -73,13 +87,85 @@ class BirthdayViewController: UIViewController {
         
         configureLayout()
         
-        nextButton.addTarget(self, action: #selector(nextButtonClicked), for: .touchUpInside)
+        bind()
     }
     
-    @objc func nextButtonClicked() {
-        print("가입완료")
-    }
+    func bind() {
+        nextButton.rx.tap
+            .bind(with: self) { owner, _ in
+                let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+                let sceneDelegate = windowScene?.delegate as? SceneDelegate
+                
+                let sampleVC = SampleViewController()
+                
+                sceneDelegate?.window?.rootViewController = sampleVC
+                sceneDelegate?.window?.makeKeyAndVisible()
+            }
+            .disposed(by: disposeBag)
+        
+        info
+            .bind(with: self, onNext: { owner, infoString in
+                owner.infoLabel.text = infoString
 
+                if infoString == InfoLabelText.availableAge.rawValue {
+                    owner.infoLabel.textColor = .blue
+                    owner.nextButton.backgroundColor = .blue
+                    owner.nextButton.isEnabled = true
+                } else if infoString == InfoLabelText.unavailableAge.rawValue {
+                    owner.infoLabel.textColor = .red
+                    owner.nextButton.backgroundColor = .lightGray
+                    owner.nextButton.isEnabled = false
+                }
+            })
+            .disposed(by: disposeBag)
+        
+        year
+            .map { "\($0)년"}
+            .bind(to: yearLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        month
+            .map { "\($0)월"}
+            .bind(to: monthLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        day
+            .map { "\($0)일"}
+            .bind(to: dayLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        birthDayPicker.rx.date
+            .subscribe(with: self) { owner, date in
+                let components = Calendar.current.dateComponents([.year, .month, .day], from: date)
+                
+                owner.year.onNext(components.year!)
+                owner.month.onNext(components.month!)
+                owner.day.onNext(components.day!)
+                
+                let today = Date()
+                
+                let todayComponents = Calendar.current.dateComponents([.year, .month, .day], from: today)
+                
+                if todayComponents.year! - components.year! > 17 {
+                    owner.info.onNext(InfoLabelText.availableAge.rawValue)
+                } else if todayComponents.year! - components.year! == 17 {
+                    if todayComponents.month! > components.month! {
+                        owner.info.onNext(InfoLabelText.availableAge.rawValue)
+                    } else if todayComponents.month! == components.month! {
+                        if todayComponents.day! >= components.day! {
+                            owner.info.onNext(InfoLabelText.availableAge.rawValue)
+                        } else {
+                            owner.info.onNext(InfoLabelText.unavailableAge.rawValue)
+                        }
+                    } else {
+                        owner.info.onNext(InfoLabelText.unavailableAge.rawValue)
+                    }
+                } else {
+                    owner.info.onNext(InfoLabelText.unavailableAge.rawValue)
+                }
+            }
+            .disposed(by: disposeBag)
+    }
     
     func configureLayout() {
         view.addSubview(infoLabel)
