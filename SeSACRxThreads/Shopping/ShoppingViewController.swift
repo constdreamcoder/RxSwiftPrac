@@ -43,15 +43,8 @@ final class ShoppingViewController: UIViewController {
         tableView.register(ShoppingTableViewCell.self, forCellReuseIdentifier: ShoppingTableViewCell.identifier)
         return tableView
     }()
-    
-    var todoList: [Todo] = [
-        .init(item: "그립톡 구매하기"),
-        .init(item: "사이다 구매"),
-        .init(item: "아이패드 케이스 최저가 알아보기"),
-        .init(item: "양말"),
-    ]
-    
-    lazy var items = BehaviorSubject(value: todoList)
+        
+    let viewModel = ShoppingViewModel()
     
     let disposeBag = DisposeBag()
     
@@ -102,15 +95,15 @@ final class ShoppingViewController: UIViewController {
     }
     
     private func bind() {
-        items
+        viewModel.items
             .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
                       
                 cell.checkmarkButton.rx.tap
                     .withUnretained(self)
                     .bind { owner, _ in
-                        owner.todoList[row].isFinished.toggle()
+                        owner.viewModel.todoList[row].isFinished.toggle()
                         
-                        if owner.todoList[row].isFinished {
+                        if owner.viewModel.todoList[row].isFinished {
                             cell.checkmarkButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
                         } else {
                             cell.checkmarkButton.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
@@ -121,8 +114,8 @@ final class ShoppingViewController: UIViewController {
                 cell.favoriteButton.rx.tap
                     .withUnretained(self)
                     .bind { owner, _  in
-                        owner.todoList[row].isChecked.toggle()
-                        if owner.todoList[row].isChecked {
+                        owner.viewModel.todoList[row].isChecked.toggle()
+                        if owner.viewModel.todoList[row].isChecked {
                             cell.favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
                         } else {
                             cell.favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
@@ -141,26 +134,12 @@ final class ShoppingViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
-        searchTextField.rx.text
-            .debounce(.seconds(1), scheduler: MainScheduler.instance)
-            .distinctUntilChanged()
-            .bind(with: self) { owner, searchText in
-                guard let searchText else { return }
-                                
-                let searchedTodoList = searchText.isEmpty ? owner.todoList : owner.todoList.filter { $0.item.contains(searchText) }
-                owner.items.onNext(searchedTodoList)
-            }
+        searchTextField.rx.text.orEmpty
+            .bind(to: viewModel.inputQuery)
             .disposed(by: disposeBag)
         
         searchTextField.rx.controlEvent(.editingDidEndOnExit)
-            .withLatestFrom(searchTextField.rx.text.orEmpty)
-            .debounce(.seconds(1), scheduler: MainScheduler.instance)
-            .distinctUntilChanged()
-            .bind(with: self) { owner, searchText in
-                print("f")
-                let searchedTodoList = searchText.isEmpty ? owner.todoList : owner.todoList.filter { $0.item.contains(searchText) }
-                owner.items.onNext(searchedTodoList)
-            }
+            .bind(to: viewModel.inputReturnButtonTap)
             .disposed(by: disposeBag)
     }
     
@@ -170,8 +149,8 @@ final class ShoppingViewController: UIViewController {
     }
     
     @objc func addButtonTapped(_ button: UIButton) {
-        todoList.append(.init(item: "테스트\(Int.random(in: 1..<100))"))
-        items.onNext(todoList)
+        viewModel.todoList.append(.init(item: "테스트\(Int.random(in: 1..<100))"))
+        viewModel.items.onNext(viewModel.todoList)
     }
 }
 

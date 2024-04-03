@@ -10,6 +10,7 @@
 		000F34A12BBA9F0B00643F56 /* SearchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000F349F2BBA9F0B00643F56 /* SearchTableViewCell.swift */; };
 		000F34A22BBA9F0B00643F56 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000F34A02BBA9F0B00643F56 /* SearchViewController.swift */; };
 		004335CA2BBD9F8D001D0CF9 /* NextPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004335C92BBD9F8D001D0CF9 /* NextPageViewController.swift */; };
+		004335CC2BBDAF02001D0CF9 /* ShoppingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 004335CB2BBDAF02001D0CF9 /* ShoppingViewModel.swift */; };
 		00AA3FA02BBD6B3500EF14AE /* ShoppingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AA3F9F2BBD6B3500EF14AE /* ShoppingViewController.swift */; };
 		00AA3FA22BBD823F00EF14AE /* ShoppingTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AA3FA12BBD823F00EF14AE /* ShoppingTableViewCell.swift */; };
 		00E3E0642BB9C62E0069C133 /* SampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00E3E0632BB9C62E0069C133 /* SampleViewController.swift */; };
@@ -57,6 +58,7 @@
 		000F349F2BBA9F0B00643F56 /* SearchTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTableViewCell.swift; sourceTree = "<group>"; };
 		000F34A02BBA9F0B00643F56 /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		004335C92BBD9F8D001D0CF9 /* NextPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextPageViewController.swift; sourceTree = "<group>"; };
+		004335CB2BBDAF02001D0CF9 /* ShoppingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingViewModel.swift; sourceTree = "<group>"; };
 		00AA3F9F2BBD6B3500EF14AE /* ShoppingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingViewController.swift; sourceTree = "<group>"; };
 		00AA3FA12BBD823F00EF14AE /* ShoppingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingTableViewCell.swift; sourceTree = "<group>"; };
 		00E3E0632BB9C62E0069C133 /* SampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleViewController.swift; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 			children = (
 				00AA3F9F2BBD6B3500EF14AE /* ShoppingViewController.swift */,
 				00AA3FA12BBD823F00EF14AE /* ShoppingTableViewCell.swift */,
+				004335CB2BBDAF02001D0CF9 /* ShoppingViewModel.swift */,
 				004335C92BBD9F8D001D0CF9 /* NextPageViewController.swift */,
 			);
 			path = Shopping;
@@ -367,6 +370,7 @@
 			files = (
 				041280782AF1D14000972552 /* Resource.swift in Sources */,
 				0412806F2AEFAD2D00972552 /* BirthdayViewController.swift in Sources */,
+				004335CC2BBDAF02001D0CF9 /* ShoppingViewModel.swift in Sources */,
 				041280652AEFA2F000972552 /* SignTextField.swift in Sources */,
 				0412806C2AEFABFE00972552 /* PasswordViewController.swift in Sources */,
 				041280562AEFA04800972552 /* SignInViewController.swift in Sources */,
