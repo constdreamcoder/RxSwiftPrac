@@ -18,34 +18,54 @@ class ShoppingViewModel {
         .init(item: "양말"),
     ]
     
-    // input
-    let items = BehaviorSubject<[Todo]>(value: [])
-    let inputQuery = PublishSubject<String>()
-    let inputReturnButtonTap = PublishSubject<Void>()
-    
-    // output
-
     let disposeBag = DisposeBag()
     
-    init() {
+    struct Input {
+        let addButtonTap: ControlEvent<Void>
+        let itemSelected: ControlEvent<IndexPath>
+        let searchText: ControlProperty<String>
+        let returnButtonTap: ControlEvent<Void>
+    }
+    
+    struct Output {
+        let items: Driver<[Todo]>
+        let addButtonTap: ControlEvent<Void>
+        let itemSelected: ControlEvent<IndexPath>
+    }
+    
+    
+    func transform(input: Input) -> Output {
+        let items = BehaviorSubject<[Todo]>(value: [])
+        
+        let inputQuery = input.searchText
         inputQuery
             .debounce(.seconds(1), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
-            .bind(with: self) { owner, searchText in                                
+            .subscribe(with: self) { owner, searchText in
                 let searchedTodoList = searchText.isEmpty ? owner.todoList : owner.todoList.filter { $0.item.contains(searchText) }
-                owner.items.onNext(searchedTodoList)
+                items.onNext(searchedTodoList)
             }
             .disposed(by: disposeBag)
         
-        inputReturnButtonTap
+        input.returnButtonTap
             .withLatestFrom(inputQuery)
             .debounce(.seconds(1), scheduler: MainScheduler.instance)
             .distinctUntilChanged()
-            .bind(with: self) { owner, searchText in
-               
+            .subscribe(with: self) { owner, searchText in
                 let searchedTodoList = searchText.isEmpty ? owner.todoList : owner.todoList.filter { $0.item.contains(searchText) }
-                owner.items.onNext(searchedTodoList)
+                items.onNext(searchedTodoList)
             }
             .disposed(by: disposeBag)
+        
+        input.addButtonTap
+            .subscribe(with: self) { owner, _ in
+                owner.todoList.append(.init(item: "테스트\(Int.random(in: 1..<100))"))
+                items.onNext(owner.todoList)
+            }
+            .disposed(by: disposeBag)
+        
+        return Output(items: items.asDriver(onErrorJustReturn: []),
+                      addButtonTap: input.addButtonTap,
+                      itemSelected: input.itemSelected)
     }
 }

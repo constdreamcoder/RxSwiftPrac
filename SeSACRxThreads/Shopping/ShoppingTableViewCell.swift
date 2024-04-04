@@ -36,7 +36,7 @@ final class ShoppingTableViewCell: UITableViewCell {
     }()
     
     var disposeBag = DisposeBag()
-
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
@@ -52,6 +52,22 @@ final class ShoppingTableViewCell: UITableViewCell {
         super.prepareForReuse()
         
         disposeBag = DisposeBag()
+    }
+    
+    func updateCheckmarkButtonImage(isFinished: Bool) {
+        if isFinished {
+            checkmarkButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
+        } else {
+            checkmarkButton.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
+        }
+    }
+    
+    func updatedFavoriteButton(isChecked: Bool) {
+        if isChecked {
+            favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
+        } else {
+            favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
+        }
     }
 }
 

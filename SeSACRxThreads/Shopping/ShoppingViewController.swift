@@ -9,8 +9,11 @@ import UIKit
 import SnapKit
 import RxSwift
 import RxCocoa
+import RxGesture
 
-struct Todo {
+struct Todo: Identifiable {
+    let id = UUID()
+    
     var isFinished: Bool = false
     let item: String
     var isChecked: Bool = false
@@ -90,36 +93,36 @@ final class ShoppingViewController: UIViewController {
         let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundViewTapped))
         tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
-        
-        addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
     }
     
     private func bind() {
-        viewModel.items
-            .bind(to: tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
-                      
+        
+        let input = ShoppingViewModel.Input(
+            addButtonTap: addButton.rx.tap,
+            itemSelected: tableView.rx.itemSelected,
+            searchText: searchTextField.rx.text.orEmpty,
+            returnButtonTap: searchTextField.rx.controlEvent(.editingDidEndOnExit)
+        )
+        
+        let output = viewModel.transform(input: input)
+        
+        output.items
+            .drive(tableView.rx.items(cellIdentifier: ShoppingTableViewCell.identifier, cellType: ShoppingTableViewCell.self)) { row, element, cell in
+    
+                cell.updateCheckmarkButtonImage(isFinished: element.isFinished)
+                cell.updatedFavoriteButton(isChecked: element.isChecked)
+                
                 cell.checkmarkButton.rx.tap
-                    .withUnretained(self)
-                    .bind { owner, _ in
-                        owner.viewModel.todoList[row].isFinished.toggle()
-                        
-                        if owner.viewModel.todoList[row].isFinished {
-                            cell.checkmarkButton.setImage(UIImage(systemName: "checkmark.square.fill"), for: .normal)
-                        } else {
-                            cell.checkmarkButton.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
-                        }
+                    .bind(with: self) { owner, _ in
+                        let todo = owner.getChangedTodo(with: element, isChecked: true)
+                        cell.updateCheckmarkButtonImage(isFinished: todo.isFinished)
                     }
                     .disposed(by: cell.disposeBag)
                 
                 cell.favoriteButton.rx.tap
-                    .withUnretained(self)
-                    .bind { owner, _  in
-                        owner.viewModel.todoList[row].isChecked.toggle()
-                        if owner.viewModel.todoList[row].isChecked {
-                            cell.favoriteButton.setImage(UIImage(systemName: "star.fill"), for: .normal)
-                        } else {
-                            cell.favoriteButton.setImage(UIImage(systemName: "star"), for: .normal)
-                        }
+                    .bind(with: self) { owner, _  in
+                        let todo = owner.getChangedTodo(with: element, isChecked: true)
+                        cell.updatedFavoriteButton(isChecked: todo.isChecked)
                     }
                     .disposed(by: cell.disposeBag)
                 
@@ -127,30 +130,32 @@ final class ShoppingViewController: UIViewController {
             }
             .disposed(by: disposeBag)
         
-        tableView.rx.itemSelected
+        output.itemSelected
             .bind(with: self) { owner, indexPath in
                 let nextPageVC = NextPageViewController()
                 owner.navigationController?.pushViewController(nextPageVC, animated: true)
             }
             .disposed(by: disposeBag)
-        
-        searchTextField.rx.text.orEmpty
-            .bind(to: viewModel.inputQuery)
-            .disposed(by: disposeBag)
-        
-        searchTextField.rx.controlEvent(.editingDidEndOnExit)
-            .bind(to: viewModel.inputReturnButtonTap)
-            .disposed(by: disposeBag)
+    }
+    
+    // MARK: - Custom Methods
+    private func getChangedTodo(with element: Todo, isChecked: Bool) -> Todo {
+        viewModel.todoList.enumerated().forEach { value in
+            if value.element.id == element.id {
+                if isChecked {
+                    viewModel.todoList[value.offset].isChecked.toggle()
+                } else {
+                    viewModel.todoList[value.offset].isFinished.toggle()
+                }
+            }
+        }
+
+        return viewModel.todoList.filter { $0.id == element.id }[0]
     }
     
     // MARK: - User Events
     @objc func backgroundViewTapped(_ gesture: UIGestureRecognizer) {
         view.endEditing(true)
-    }
-    
-    @objc func addButtonTapped(_ button: UIButton) {
-        viewModel.todoList.append(.init(item: "테스트\(Int.random(in: 1..<100))"))
-        viewModel.items.onNext(viewModel.todoList)
     }
 }
 
